@@ -56,6 +56,10 @@ STRIP_ATTR_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Feature-flag classes on these can look like navigation. Removing one of them
+# removes the page.
+NEVER_STRIP_TAGS = {"html", "body", "main", "article"}
+
 # The real content usually lives in one of these. Checked in order.
 MAIN_SELECTORS = [
     "main", "article", "[role=main]", "#main-content", "#content",
@@ -104,17 +108,32 @@ def fetch_playwright(url: str) -> str:
 def strip_noise(soup):
     for tag in soup(STRIP_TAGS):
         tag.decompose()
+
+    total = len(soup.get_text(strip=True)) or 1
+
+    def carries_the_page(tag):
+        """
+        A real navigation block is a small fraction of the page. Anything
+        holding most of the text is the content itself, wearing a misleading
+        class - e.g. Wikipedia puts `vector-feature-main-menu-pinned` on <html>.
+        """
+        return len(tag.get_text(strip=True)) > total * 0.4
+
     # Decomposing a parent detaches its descendants, and a detached tag raises
     # on attribute access - so skip anything already removed.
     for tag in list(soup.find_all(attrs={"role": "navigation"})):
-        if not tag.decomposed:
+        if not tag.decomposed and not carries_the_page(tag):
             tag.decompose()
+
     for tag in list(soup.find_all(True)):
-        if tag.decomposed:
+        if tag.decomposed or tag.name in NEVER_STRIP_TAGS:
             continue
         ident = " ".join(tag.get("class") or []) + " " + (tag.get("id") or "")
-        if ident.strip() and STRIP_ATTR_RE.search(ident):
-            tag.decompose()
+        if not ident.strip() or not STRIP_ATTR_RE.search(ident):
+            continue
+        if carries_the_page(tag):
+            continue
+        tag.decompose()
     return soup
 
 

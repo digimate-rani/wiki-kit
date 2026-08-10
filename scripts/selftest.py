@@ -91,6 +91,36 @@ def t_main_content():
     return "main content isolated, chrome dropped"
 
 
+def t_noise_filter_guard():
+    """
+    Regression: a navigation-shaped class can sit on the element that holds the
+    whole page (Wikipedia puts `vector-feature-main-menu-pinned` on <html>).
+    Stripping it once emptied every page on the site.
+    """
+    from scrape_web import html_to_markdown, clean_markdown
+    real = "Actual page content that has to survive the noise filter. " * 20
+
+    on_root = f"""
+    <html class="vector-feature-main-menu-pinned-disabled">
+      <body class="skin-vector menu-enabled">
+        <div class="mw-content-container"><p>{real}</p></div>
+        <div class="vector-main-menu">nav junk here</div>
+      </body></html>
+    """
+    md = clean_markdown(html_to_markdown(on_root))
+    if "Actual page content" not in md:
+        raise AssertionError("nav class on <html>/<body> wiped the page")
+    if "nav junk here" in md:
+        raise AssertionError("genuine navigation survived")
+
+    # Same trap one level down: the content wrapper itself matches the pattern.
+    on_wrapper = f'<html><body><div class="sidebar-content"><p>{real}</p></div></body></html>'
+    if "Actual page content" not in clean_markdown(html_to_markdown(on_wrapper)):
+        raise AssertionError("content wrapper with a nav-like class was deleted")
+
+    return "content survives nav-shaped classes on its own container"
+
+
 def t_encoding():
     """A server that sends no charset must not produce mojibake."""
     from scrape_web import html_to_markdown, clean_markdown
@@ -165,6 +195,7 @@ def main():
     check("wiki structure + config", t_config)
     check("web scraper: HTML to markdown", t_html_to_markdown)
     check("web scraper: main content isolation", t_main_content)
+    check("web scraper: noise filter guard", t_noise_filter_guard)
     check("web scraper: unicode handling", t_encoding)
     check("pdf converter: PDF to markdown", t_pdf_roundtrip)
     check("pdf converter: Hebrew RTL guards", t_hebrew_rtl)
