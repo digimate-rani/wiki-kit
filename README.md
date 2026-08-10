@@ -53,13 +53,13 @@ your `CLAUDE.md` so Claude knows the wiki exists in the first place.
 
 ### Step 1 - get the kit into your project
 
-Open a terminal in your project folder and run:
+You need a `wiki-kit/` folder sitting inside your project. Either:
 
 ```bash
-git clone https://github.com/USER/wiki-kit.git
+git clone https://github.com/ORG/wiki-kit.git      # <-- repo URL goes here
 ```
 
-That creates a `wiki-kit/` folder inside your project.
+or just copy the `wiki-kit` folder in, if you were handed it directly.
 
 ### Step 2 - let Claude install it
 
