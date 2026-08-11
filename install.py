@@ -483,10 +483,29 @@ def main():
         say("Run this from your project, or pass --target <project folder>.")
         return 1
 
-    if not looks_like_project(target) and not args.yes and sys.stdin.isatty():
-        say(f"\n{target} does not look like a project folder "
-            "(no .git, .claude, CLAUDE.md or package.json).")
-        if input("Install here anyway? [y/N] ").strip().lower() not in ("y", "yes"):
+    if not looks_like_project(target):
+        say(f"\nThat does not look like a project folder:")
+        say(f"  {target}")
+        say("  Nothing there marks a project: no .git, .claude, CLAUDE.md, "
+            "package.json or pyproject.toml.")
+        say("")
+        say("The kit installs INTO a project. It is not a standalone tool, and it")
+        say("cannot install into its own folder.")
+        say("")
+        say("Two ways to fix it:")
+        say("  1. Put the kit inside your project, so it sits at")
+        say("     <your-project>/wiki-kit/, then run it again.")
+        say("  2. Name the project explicitly:")
+        say('     python install.py --target "<path to your project>"')
+
+        # --yes means "accept the defaults", not "skip the safety check". An agent
+        # running unattended must stop here and ask the user where this should go.
+        if args.yes or not sys.stdin.isatty():
+            say("")
+            say("Stopping. Nothing was written.")
+            return 1
+        if input("\nInstall into it anyway? [y/N] ").strip().lower() not in ("y", "yes"):
+            say("Stopping. Nothing was written.")
             return 1
 
     categories = choose_categories(args.categories, args.yes)

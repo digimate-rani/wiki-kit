@@ -17,8 +17,25 @@ Talk to the user in whatever language they are writing in.
 ### 1. Find the kit and the project
 
 The kit is usually cloned as `<project>/wiki-kit/`. Confirm `install.py` exists
-before doing anything else. If the kit is somewhere else, you will pass
-`--target <project folder>`.
+before doing anything else.
+
+**Then work out which folder is the project, and say it out loud before you
+install anything.** The installer assumes the folder holding the kit is the
+project. That assumption is wrong in one common case: the user cloned the kit
+on its own, so the kit *is* the top folder and its parent is some unrelated
+folder full of other projects. Installing there scatters a wiki tree into it.
+
+Check it: does the intended project folder contain `.git`, `.claude`,
+`CLAUDE.md`, `package.json` or `pyproject.toml`? If none of them are there, do
+not guess. Tell the user which folder you are about to install into and ask
+whether that is really their project. The installer stops on its own in this
+case, but you should catch it first - it is a confusing failure to hit blind.
+
+If the project is somewhere else, pass `--target "<project folder>"`.
+
+If the kit was cloned on its own with no project around it, there is nothing to
+install into. The kit cannot install into its own folder. Ask the user which
+project the wiki belongs to, then move the kit inside it, or pass `--target`.
 
 Check whether it is already installed: if `wiki-kit.json` exists at the project
 root, this is not a fresh install - go to section B or C.

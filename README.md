@@ -53,13 +53,21 @@ your `CLAUDE.md` so Claude knows the wiki exists in the first place.
 
 ### Step 1 - get the kit into your project
 
-You need a `wiki-kit/` folder sitting inside your project. Either:
+The kit is an add-on, not a standalone tool. It installs **into** a project, so
+start from the project you want the wiki in - then clone the kit inside it:
 
 ```bash
+cd my-project          # the project that will hold the wiki
 git clone https://github.com/digimate-rani/wiki-kit.git
 ```
 
-or just copy the `wiki-kit` folder in, if you were handed it directly.
+You should end up with `my-project/wiki-kit/`. Do not clone it on its own and
+run it from there - the installer would have no project to install into, and it
+will stop and tell you so.
+
+No project yet? An empty folder is enough. Create it, `cd` into it, and clone.
+
+Already downloaded the folder by hand? Just move it inside your project.
 
 ### Step 2 - let Claude install it
 
