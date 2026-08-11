@@ -225,13 +225,22 @@ def copy_scripts(target: Path, scripts_dir: str, dry: bool):
 
 def copy_agent_files(target: Path, dry: bool):
     step("Skills and slash commands")
+    skills_src = KIT / ".claude" / "skills"
+    cmds_src = KIT / ".claude" / "commands"
+    for src in (skills_src, cmds_src):
+        if not src.is_dir():
+            raise SystemExit(
+                f"  ! missing from the kit: {src}\n"
+                "    The kit is incomplete - re-clone it."
+            )
+
     skills_dst = target / ".claude" / "skills"
     cmds_dst = target / ".claude" / "commands"
     if not dry:
         skills_dst.mkdir(parents=True, exist_ok=True)
         cmds_dst.mkdir(parents=True, exist_ok=True)
 
-    for skill_dir in sorted((KIT / "skills").iterdir()):
+    for skill_dir in sorted(skills_src.iterdir()):
         if not skill_dir.is_dir():
             continue
         dst = skills_dst / skill_dir.name
@@ -241,7 +250,7 @@ def copy_agent_files(target: Path, dry: bool):
             shutil.copytree(skill_dir, dst)
         did(f".claude/skills/{skill_dir.name}/")
 
-    for cmd in sorted((KIT / "commands").glob("*.md")):
+    for cmd in sorted(cmds_src.glob("*.md")):
         if not dry:
             shutil.copy2(cmd, cmds_dst / cmd.name)
         did(f".claude/commands/{cmd.name}")

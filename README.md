@@ -56,7 +56,7 @@ your `CLAUDE.md` so Claude knows the wiki exists in the first place.
 You need a `wiki-kit/` folder sitting inside your project. Either:
 
 ```bash
-git clone https://github.com/ORG/wiki-kit.git      # <-- repo URL goes here
+git clone https://github.com/digimate-rani/wiki-kit.git
 ```
 
 or just copy the `wiki-kit` folder in, if you were handed it directly.
