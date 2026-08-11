@@ -45,6 +45,10 @@ Then check the script's output:
 Thin output means either a short page or a JavaScript shell. Open the file and
 judge before continuing.
 
+The file lands in `wiki/sources/web/<site>/`, a folder named after the URL's
+host. Read the path the script prints rather than assuming it - that path is
+what goes in the page's `sources:` field.
+
 **Note**
 - A file path the user gave you: read it directly, no conversion.
 - "Write a note about X": write it yourself, then save a copy to
@@ -88,7 +92,7 @@ Every page, new or updated, opens with frontmatter:
 ---
 title: "Page Title"
 date: "YYYY-MM-DD"
-sources: ["wiki/sources/<type>/<slug>.md"]
+sources: ["wiki/sources/web/<site>/<slug>.md"]
 related: ["<category>/<related-page>.md"]
 ---
 ```

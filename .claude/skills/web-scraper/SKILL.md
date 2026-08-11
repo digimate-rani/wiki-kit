@@ -22,8 +22,15 @@ PY S/scrape_web.py --url "<url>" --slug "<short-name>"
 
 - `slug` is a lowercase-hyphenated filename without `.md`. Omit it and one is
   derived from the URL.
-- Output: `wiki/sources/web/<slug>.md`
-- `--out DIR` writes somewhere else.
+- Output: `wiki/sources/web/<site>/<slug>.md`, where `<site>` is the URL's host
+  (`docs.canva.com` becomes `docs-canva-com`). You do not pass it and you do not
+  coordinate it - every page of one site groups itself, which is what keeps a
+  thirty-page scrape from becoming thirty loose files in one folder.
+- `--collection NAME` overrides that folder. Use it when one body of knowledge
+  is spread over several hosts (`docs.x.com` and `api.x.com`), so it arrives as
+  one collection instead of two.
+- `--flat` writes straight into `wiki/sources/web/`, no subfolder.
+- `--out DIR` writes to an exact directory and ignores the two flags above.
 
 **Thin output.** Under 150 words, the script says so. Two possible reasons: the
 page is genuinely short, or it is a JavaScript shell that needs a real browser.
@@ -85,6 +92,11 @@ while read -r url; do
   sleep 0.5
 done < urls.txt
 ```
+
+Every page lands in the same `sources/web/<site>/` folder on its own, because
+each run derives that folder from its own URL. Pass `--collection NAME` on every
+line of the loop only if you want a name of your choosing, or if the URLs span
+more than one host and belong together anyway.
 
 Review the URL list before scraping it. A 300-page docs site scraped blindly
 produces 300 files nobody will read.

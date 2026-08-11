@@ -20,7 +20,7 @@ that ever went in.
 
 | Script | What it does |
 |--------|--------------|
-| `scrape_web.py` | Any URL → clean markdown. Strips navigation, ads and cookie banners. Falls back to a real browser for JavaScript-heavy pages. |
+| `scrape_web.py` | Any URL → clean markdown. Strips navigation, ads and cookie banners. Falls back to a real browser for JavaScript-heavy pages. Files are filed by site, so a thirty-page docs scrape arrives as one folder. |
 | `convert_pdf_to_md.py` | Any PDF → markdown, headings included. Detects scanned files and reversed Hebrew text. |
 
 **Six slash commands**
@@ -121,7 +121,7 @@ your-project/
 │   ├── learning/
 │   ├── inbox/              drop files here for /wiki-ingest-batch
 │   └── sources/            raw captured text, before it becomes a page
-│       ├── web/
+│       ├── web/            one folder per site scraped
 │       ├── pdf/
 │       └── local/
 ├── scripts/wiki/           the capture scripts

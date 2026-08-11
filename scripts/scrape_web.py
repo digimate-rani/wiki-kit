@@ -2,9 +2,12 @@
 Scrape a web page into clean markdown for wiki ingestion.
 
 Usage:
-    python scripts/wiki/scrape_web.py --url "URL" [--slug "my-slug"] [--out DIR]
+    python scripts/wiki/scrape_web.py --url "URL" [--slug "my-slug"]
+                                      [--collection NAME | --flat] [--out DIR]
 
-Saves to <wiki>/sources/web/<slug>.md by default.
+Saves to <wiki>/sources/web/<site>/<slug>.md, where <site> comes from the URL's
+host. Scraping thirty pages of one documentation site therefore groups them in
+one folder without the thirty separate runs having to know about each other.
 
 Two-pass strategy:
   Pass 1 - plain HTTP request (fast, works for most pages)
@@ -75,6 +78,20 @@ def slug_from_url(url: str) -> str:
     path = re.sub(r"[^a-zA-Z0-9\-]", "", path)
     path = re.sub(r"-+", "-", path).strip("-")
     return path[:80] if path else parsed.netloc.replace(".", "-")
+
+
+def collection_from_url(url: str) -> str:
+    """
+    The folder a scraped page belongs in, taken from the site's host.
+
+    This script only ever sees one URL. It cannot know the call is the ninth of
+    thirty from the same documentation site, so the grouping cannot be decided
+    per batch - it has to fall out of the URL itself. The host does that: every
+    page of one site lands together, and no run needs to know about any other.
+    """
+    host = urlparse(url).netloc.lower().split(":")[0]
+    host = re.sub(r"^www\.", "", host)
+    return re.sub(r"[^a-z0-9]+", "-", host).strip("-") or "misc"
 
 
 def fetch_static(url: str) -> str:
@@ -222,15 +239,26 @@ def main():
     ap.add_argument("--url", required=True, help="URL to scrape")
     ap.add_argument("--slug", default=None,
                     help="Output filename without .md (auto-derived from the URL if omitted)")
+    ap.add_argument("--collection", default=None,
+                    help="Subfolder under sources/web to group this page into "
+                         "(default: derived from the site's host)")
+    ap.add_argument("--flat", action="store_true",
+                    help="Write straight into sources/web with no subfolder")
     ap.add_argument("--out", default=None,
-                    help="Output directory (default: <wiki>/sources/web)")
+                    help="Output directory, used exactly as given "
+                         "(overrides --collection and --flat)")
     ap.add_argument("--playwright", action="store_true",
                     help="Force Playwright for JS-rendered pages")
     ap.add_argument("--no-fallback", action="store_true",
                     help="Do not retry with Playwright when content looks thin")
     args = ap.parse_args()
 
-    out_dir = Path(args.out) if args.out else sources_dir("web")
+    if args.out:
+        out_dir = Path(args.out)
+    elif args.flat:
+        out_dir = sources_dir("web")
+    else:
+        out_dir = sources_dir("web") / (args.collection or collection_from_url(args.url))
     out_path = scrape(
         args.url,
         args.slug or slug_from_url(args.url),
