@@ -36,6 +36,11 @@ pointing at files that do not exist. Then link hygiene inside pages: absolute
 `file:///` or drive-letter paths, relative paths that resolve to nothing, and
 `[[Wikilink]]` syntax matching no filename.
 
+Also compare each page's `related:` frontmatter against its `## Related`
+section. A page with body links and `related: []` is connected but advertises
+itself as isolated, which is how a healthy wiki comes to look dead in any tool
+that reads the frontmatter. Report the mismatch in either direction.
+
 ### C - Missing cross-references
 Pages that clearly belong together and do not link to each other. Name the pair
 and the reason.
@@ -70,6 +75,7 @@ Concept gaps: N | Stale claims: N | Thin pages: N
 - `wiki/learning/thing.md` exists on disk but is not in the index
 - Index points to `wiki/research/gone.md` - file does not exist
 - `wiki/knowledge/api.md` links to `file:///D:/...` - absolute path
+- `wiki/knowledge/api.md` has 2 links in `## Related` but `related: []`
 
 ## C - Missing cross-references
 - `wiki/learning/a.md` → should link to `wiki/learning/b.md` (both cover X)

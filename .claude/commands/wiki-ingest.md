@@ -93,12 +93,23 @@ related: ["<category>/<related-page>.md"]
 ---
 ```
 
+All four fields are required. `related:` lists the same pages as the `##
+Related` section at the bottom, written as paths from the wiki root, and it is
+the field most often left as `[]` by accident. An empty `related:` on a page
+that does have links in its body is wrong, and it reads as "this page connects
+to nothing" in any tool that displays the frontmatter. Fill it, or the page
+looks isolated even though it is not.
+
 Then the content. Synthesize, do not transcribe: what is true, what it means
 here, what to do with it. If the source is a reference, tables and copy-paste
 snippets beat prose.
 
 ### Links - one standard, no exceptions
 
+- Two places record a connection, and they must agree: the `## Related` section
+  in the body holds the real links, and `related:` in the frontmatter lists the
+  same pages as metadata. Writing one without the other is the most common way a
+  connected page ends up looking orphaned.
 - Relative markdown links only: `[Page Title](other-page.md)` in the same folder,
   `[Page Title](../people/name.md)` across folders.
 - Never absolute paths (`file:///`, `D:/...`). They break on every other machine.
@@ -144,7 +155,9 @@ Key insight: <one line>
 - PDFs are converted by the script first - never summarized straight from the binary.
 - Warnings from the conversion scripts are reported to the user, not swallowed.
 - Never create a second entity page for something that already has one.
-- Every page has frontmatter. Every new page has an inbound link.
+- Every page has all four frontmatter fields. `related: []` is only correct on a
+  page that genuinely has no `## Related` links - which should be rare.
+- Every new page has an inbound link.
 - Every ingest touches `index.md` and `log.md`. No exceptions.
 - Wiki pages are written in the language of the source; the conversation follows the user.
 </rules>
