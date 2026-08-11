@@ -4,13 +4,15 @@ wiki-kit installer - sets up an agent-maintained wiki in any Claude Code project
 
 What it does, in order:
   1. Works out which project it is installing into
-  2. Creates the wiki folder tree (categories are yours to choose)
-  3. Copies the scripts into <project>/scripts/wiki/
-  4. Copies the skills and slash commands into <project>/.claude/
-  5. Creates a Python virtual environment and installs the dependencies
-  6. Writes wiki-kit.json so every part can find the others
-  7. Adds a short wiki section to the project's CLAUDE.md
-  8. Runs the self-test and reports the result
+  2. Adds the ignore rules, so the environment it is about to build never
+     reaches a repository
+  3. Creates the wiki folder tree (categories are yours to choose)
+  4. Copies the scripts into <project>/scripts/wiki/
+  5. Copies the skills and slash commands into <project>/.claude/
+  6. Creates a Python virtual environment and installs the dependencies
+  7. Writes wiki-kit.json so every part can find the others
+  8. Adds a short wiki section to the project's CLAUDE.md
+  9. Runs the self-test and reports the result
 
 Typical use:
     python install.py                                   # install into the parent project
@@ -93,6 +95,44 @@ def resolve_target(explicit) -> Path:
 def looks_like_project(path: Path) -> bool:
     markers = [".git", ".claude", "CLAUDE.md", "package.json", "pyproject.toml"]
     return any((path / m).exists() for m in markers)
+
+
+# ----------------------------------------------------------------- gitignore
+
+GITIGNORE_RULES = [".venv/", "venv/", "__pycache__/", "*.pyc", "wiki-kit/"]
+
+
+def ensure_gitignore(target: Path, dry: bool):
+    """
+    Runs before anything else is created, and the venv is the reason why.
+
+    A few steps from now this installer builds .venv/ - thousands of files and
+    hundreds of megabytes that must never reach a repository. Someone who runs
+    `git add .` before noticing has a genuinely hard mess to undo, and it is not
+    a mess a beginner can be expected to clean up. The rules go in first, so the
+    window where that can happen never opens.
+
+    An existing .gitignore is never rewritten. Only the missing lines are added.
+    """
+    step("Git ignore rules")
+    path = target / ".gitignore"
+
+    old = path.read_text(encoding="utf-8") if path.is_file() else ""
+    # "/.venv/", ".venv" and ".venv/" all mean the same thing here.
+    covered = {ln.strip().strip("/") for ln in old.splitlines()
+               if ln.strip() and not ln.lstrip().startswith(("#", "!"))}
+
+    missing = [rule for rule in GITIGNORE_RULES if rule.strip("/") not in covered]
+    if not missing:
+        skipped(".gitignore already covers the environment and the caches")
+        return
+
+    block = ("# wiki-kit - the environment and the caches are rebuilt, never committed\n"
+             + "\n".join(missing) + "\n")
+    if not dry:
+        text = (old.rstrip() + "\n\n" + block) if old.strip() else block
+        path.write_text(text, encoding="utf-8")
+    did(f".gitignore {'updated' if old.strip() else 'created'}: {', '.join(missing)}")
 
 
 # ------------------------------------------------------------------ wiki tree
@@ -511,6 +551,7 @@ def main():
     categories = choose_categories(args.categories, args.yes)
     say(f"\nCategories: {', '.join(categories)}")
 
+    ensure_gitignore(target, args.dry_run)
     build_wiki(target, args.wiki_root, categories, args.dry_run)
     copy_scripts(target, args.scripts_dir, args.dry_run)
     copy_agent_files(target, args.dry_run)

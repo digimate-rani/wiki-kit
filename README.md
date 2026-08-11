@@ -130,8 +130,14 @@ your-project/
 │   └── commands/           the six slash commands
 ├── .venv/                  isolated Python environment
 ├── wiki-kit.json           paths and settings, so every part finds the others
+├── .gitignore              gains the rules that keep .venv out of your repo
 └── CLAUDE.md               gains a short section describing the wiki
 ```
+
+The `.gitignore` rules go in first, before the environment exists. `.venv/` is
+over a thousand files that must never be committed, and undoing that once it has
+happened is real work. If you already have a `.gitignore`, only the missing
+lines are added - nothing of yours is rewritten.
 
 Re-running the installer is safe. Your pages, index entries and log are never
 overwritten - only new category sections get appended.
