@@ -14,6 +14,27 @@ Talk to the user in whatever language they are writing in.
 
 ## A. First-time install
 
+### 0. Check that Python exists
+
+`install.py` is a Python script. If there is no interpreter, every later step
+fails in a way that looks like a broken kit. Check first:
+
+```bash
+py -3 --version        # Windows
+python3 --version      # macOS / Linux
+```
+
+- Prints **3.9 or newer** - continue to step 1.
+- Prints an older version, prints nothing, or errors - go to **section D**,
+  install Python, then come back here.
+
+On Windows, `python --version` printing nothing or "Python was not found" means
+you hit the Microsoft Store stub, not a real interpreter. Treat it as missing
+and check section D.
+
+Do not silently skip this. A missing interpreter is the one failure the
+installer cannot report on, because it never gets to run.
+
 ### 1. Find the kit and the project
 
 The kit is usually cloned as `<project>/wiki-kit/`. Confirm `install.py` exists
@@ -143,8 +164,116 @@ python wiki-kit/install.py --dry-run
 
 ---
 
+## D. Python is missing
+
+**Ask before installing anything.** Say what it is, roughly how large, and where
+it goes. Installing software on someone's machine is not part of "install the
+wiki" unless they agree to it.
+
+### Confirm it is really missing
+
+Run every candidate before concluding anything - a machine often has Python
+under a name you did not try:
+
+```bash
+py -3 --version        # Windows launcher - the most reliable check
+python3 --version
+python --version
+```
+
+Windows has one specific trap. `python.exe` under
+`AppData\Local\Microsoft\WindowsApps` is a stub that opens the Microsoft Store;
+it prints "Python was not found" and exits non-zero. If `where.exe python`
+returns *only* that path, there is no real Python:
+
+```powershell
+where.exe python
+```
+
+### Windows
+
+`winget` ships with Windows 10 (1809+) and Windows 11. Check, then install:
+
+```powershell
+winget --version
+winget install --id Python.Python.3.12 -e --source winget --scope user `
+  --accept-package-agreements --accept-source-agreements
+```
+
+`--scope user` installs under the user's profile and avoids the administrator
+prompt. If winget rejects that scope for this package, re-run without it - but
+that version may raise a UAC dialog, which you cannot click. If it does, hand
+the command to the user to run in their own terminal.
+
+No winget: send them to <https://www.python.org/downloads/> and tell them to
+tick **"Add Python to PATH"** in the installer.
+
+**PATH is stale after the install.** Your shell inherited its environment when
+the session started, so `python` will still fail even though Python now exists.
+Do not conclude the install failed. Verify with the absolute path instead:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" --version
+```
+
+and use that same absolute path to run the installer:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" wiki-kit/install.py --categories "..." --yes
+```
+
+That is safe: `install.py` builds `.venv` from whichever interpreter runs it and
+writes the resulting absolute path into `wiki-kit.json`, so everything
+afterwards finds the right Python regardless of PATH. Tell the user to restart
+Claude Code once, after which a bare `python` works normally.
+
+### macOS
+
+```bash
+brew --version
+brew install python@3.12
+```
+
+No Homebrew: **do not install it yourself.** Its installer asks for an
+administrator password, and your shell cannot answer a prompt - it will hang or
+fail. Point the user at <https://www.python.org/downloads/macos/> instead, or
+give them the Homebrew command to run themselves.
+
+### Linux
+
+Most package managers need `sudo`, which needs a password you cannot type.
+Check whether this machine allows it without one:
+
+```bash
+sudo -n true          # exit 0 = passwordless sudo, safe to proceed
+```
+
+If yes:
+
+```bash
+sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip   # Debian / Ubuntu
+sudo dnf install -y python3 python3-pip                                            # Fedora / RHEL
+sudo pacman -S --noconfirm python                                                  # Arch
+```
+
+If no, print the command and ask the user to run it in their own terminal.
+
+On Debian and Ubuntu, `python3-venv` matters. Without it Python exists but
+`python -m venv` fails, and the installer dies half way through building `.venv`
+with an error that does not name the real cause.
+
+### After installing
+
+Re-run the detection commands and read the actual output before continuing. Do
+not assume the install worked because the command exited quietly.
+
+---
+
 ## Rules
 
+- Check for Python before anything else, and never install it without asking.
+  Never run an installer that needs a password or a click - your shell cannot
+  answer either, so hand that command to the user instead.
 - Ask about categories before installing, never after. Renaming a shelf once it
   holds pages is real work.
 - One installer run. If it fails, diagnose from its output - do not re-run it

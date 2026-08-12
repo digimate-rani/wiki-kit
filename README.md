@@ -42,7 +42,9 @@ your `CLAUDE.md` so Claude knows the wiki exists in the first place.
 ## Requirements
 
 - **Python 3.9 or newer.** Check with `python --version`.
-  Windows: install from [python.org](https://www.python.org/downloads/) and tick
+  Don't have it? Claude checks for it before installing and offers to install it
+  for you - it will ask first. Or do it yourself from
+  [python.org](https://www.python.org/downloads/); on Windows, tick
   "Add Python to PATH".
 - **Claude Code**, in a project folder.
 - Nothing else. The installer creates its own isolated environment.
