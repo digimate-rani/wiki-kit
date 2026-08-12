@@ -14,6 +14,16 @@ description: Add a source to the wiki - a URL, a PDF, or a note. Converts it to 
 Read `wiki-kit.json` at the project root. It gives you `python`, `wiki_root`
 and `scripts_dir`. Run every script with that `python`, not a bare `python`.
 Below, `wiki/` means `wiki_root`.
+
+**If `python` is `null`**, this project was set up without Python and the
+conversion scripts in step 2 cannot run. Do not try them anyway. Follow "When
+`python` is `null`" in `.claude/skills/wiki/SKILL.md`: re-check whether Python
+has appeared since, and if it has, offer to finish the install in one command
+before continuing.
+
+If it is genuinely still missing, you are not stuck - a **note** ingests
+normally, and for a URL or a PDF offer the fallback in step 2. Every other step
+on this page is unchanged.
 </setup>
 
 <steps>
@@ -56,6 +66,31 @@ what goes in the page's `sources:` field.
   worked, and paths to the real files.
 
 `slug` = short, lowercase, hyphenated. No dates unless the date is the point.
+
+**Fallback when there is no Python** (`"python": null`). The scripts are the
+right tool, but their absence should not cost the user the page. Offer this,
+say what it costs, and let them choose:
+
+- **URL** - fetch the page yourself with your own web-reading tool, then save the
+  text to `wiki/sources/web/<site>/<slug>.md` by hand, matching the folder
+  layout above.
+- **PDF** - read the file directly and save the text to
+  `wiki/sources/pdf/<slug>.md`.
+
+Two honest caveats to state up front: the result is usually messier than the
+scraper's - navigation, cookie banners and footers may survive - and long pages
+can come back truncated. Read what you saved before ingesting it, exactly as you
+would a thin scrape.
+
+Mark it, so the page's history stays truthful. Put this as the first line of the
+source file:
+
+```
+> Captured without the wiki scraper - Python was not installed. Re-capture with
+> /wiki-ingest once it is, if the cleanliness of this text matters.
+```
+
+Everything after this step is identical. A page built this way is a real page.
 
 ## 3. Read `wiki/index.md`
 

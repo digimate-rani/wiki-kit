@@ -41,12 +41,24 @@ your `CLAUDE.md` so Claude knows the wiki exists in the first place.
 
 ## Requirements
 
-- **Python 3.9 or newer.** Check with `python --version`.
-  Don't have it? Claude checks for it before installing and offers to install it
-  for you - it will ask first. Or do it yourself from
-  [python.org](https://www.python.org/downloads/); on Windows, tick
-  "Add Python to PATH".
 - **Claude Code**, in a project folder.
+- **Python 3.9 or newer** - but only for the capture scripts. Check with
+  `python --version`.
+
+  Writing, reading and querying wiki pages needs no Python at all. It is web
+  scraping and PDF conversion that do. So if you don't have it, nothing is
+  blocked: Claude checks first and offers you the choice - set the wiki up now
+  and add Python whenever you want it, or install Python first with Claude
+  walking you through it. It asks before installing anything.
+
+  Chose to wait? Nothing is lost and you don't have to remember any of it. The
+  choice is recorded in the project, so a session next month knows the scripts
+  are off before it tries to use them. Say "finish the wiki install" or run
+  `/wiki-setup` whenever you like - it takes one command and keeps every page
+  you have written since.
+
+  Doing it yourself: [python.org](https://www.python.org/downloads/), version
+  3.12 recommended. On Windows, tick "Add python.exe to PATH" in the installer.
 - Nothing else. The installer creates its own isolated environment.
 
 ---

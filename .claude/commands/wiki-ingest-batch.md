@@ -12,6 +12,13 @@ description: Ingest everything waiting in wiki/inbox/ - notes, PDFs and a URL li
 <setup>
 Read `wiki-kit.json` for `python`, `wiki_root` and `scripts_dir`.
 Below, `wiki/` means `wiki_root`.
+
+**If `python` is `null`**, follow "When `python` is `null`" in
+`.claude/skills/wiki/SKILL.md` before scanning anything. A batch is the worst
+place to discover a missing interpreter - half the queue converts and half does
+not. Settle it first: finish the install if Python has appeared, or agree with
+the user on the `/wiki-ingest` fallback for the PDFs and URLs in the queue.
+Notes are unaffected either way.
 </setup>
 
 <steps>

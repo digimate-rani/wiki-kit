@@ -445,11 +445,18 @@ def run_selftest(target: Path, py: Path, scripts_dir: str, network: bool) -> boo
 
 # ---------------------------------------------------------------- categories
 
-def choose_categories(arg_value, assume_yes) -> list:
+def choose_categories(arg_value, assume_yes, known=None) -> list:
     if arg_value:
         picked = [c.strip().lower().replace(" ", "-")
                   for c in arg_value.split(",") if c.strip()]
         return picked or DEFAULT_CATEGORIES
+
+    # Already installed here - keep the shelves the user picked last time.
+    # This matters most when finishing an install that was started without
+    # Python: without it, --yes would quietly add the four defaults on top of
+    # whatever they actually chose.
+    if known:
+        return list(known)
 
     if assume_yes or not sys.stdin.isatty():
         return DEFAULT_CATEGORIES
@@ -483,9 +490,8 @@ def main():
         description="Install the wiki kit into a Claude Code project")
     ap.add_argument("--target", help="Project folder (default: the folder containing this kit)")
     ap.add_argument("--categories", help="Comma separated wiki folders to create")
-    ap.add_argument("--wiki-root", default="wiki", help="Wiki folder name (default: wiki)")
-    ap.add_argument("--scripts-dir", default="scripts/wiki",
-                    help="Where the scripts go (default: scripts/wiki)")
+    ap.add_argument("--wiki-root", help="Wiki folder name (default: wiki)")
+    ap.add_argument("--scripts-dir", help="Where the scripts go (default: scripts/wiki)")
     ap.add_argument("--yes", "-y", action="store_true", help="Accept defaults, ask nothing")
     ap.add_argument("--with-playwright", action="store_true",
                     help="Also install Playwright, for JavaScript-heavy sites")
@@ -509,13 +515,33 @@ def main():
     if args.dry_run:
         say("DRY RUN - nothing will be written")
 
+    # An earlier install here decides the defaults for this one.
+    existing = {}
+    cfg_path = target / "wiki-kit.json"
+    if cfg_path.is_file():
+        try:
+            existing = json.loads(cfg_path.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            existing = {}
+
+    wiki_root = args.wiki_root or existing.get("wiki_root") or "wiki"
+    scripts_dir = args.scripts_dir or existing.get("scripts_dir") or "scripts/wiki"
+
     if args.verify_only:
-        cfg_path = target / "wiki-kit.json"
-        if not cfg_path.is_file():
+        if not existing:
             say("No wiki-kit.json found - the kit is not installed here.")
             return 1
-        cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-        ok = run_selftest(target, Path(cfg["python"]), cfg["scripts_dir"], args.network)
+        if not existing.get("python"):
+            # A no-Python install: the pages and the reading commands work, the
+            # capture scripts cannot. There is no environment to test yet.
+            say("\nThis project was set up without Python.")
+            say("  Reading, writing and querying pages works.")
+            say("  Capturing web pages and PDFs does not - those need Python.")
+            say("")
+            say("Finish the install once Python is available:")
+            say('  python wiki-kit/install.py --yes')
+            return 1
+        ok = run_selftest(target, Path(existing["python"]), scripts_dir, args.network)
         return 0 if ok else 1
 
     if target == KIT:
@@ -548,27 +574,28 @@ def main():
             say("Stopping. Nothing was written.")
             return 1
 
-    categories = choose_categories(args.categories, args.yes)
+    categories = choose_categories(args.categories, args.yes,
+                                   existing.get("categories"))
     say(f"\nCategories: {', '.join(categories)}")
 
     ensure_gitignore(target, args.dry_run)
-    build_wiki(target, args.wiki_root, categories, args.dry_run)
-    copy_scripts(target, args.scripts_dir, args.dry_run)
+    build_wiki(target, wiki_root, categories, args.dry_run)
+    copy_scripts(target, scripts_dir, args.dry_run)
     copy_agent_files(target, args.dry_run)
     py, deps_ok = ensure_python(target, not args.no_venv, args.with_playwright, args.dry_run)
 
     py_hint = f".venv/{'Scripts/python' if os.name == 'nt' else 'bin/python'}" \
         if not args.no_venv else "python"
-    write_config(target, py, args.wiki_root, args.scripts_dir, categories,
+    write_config(target, py, wiki_root, scripts_dir, categories,
                  args.with_playwright, args.dry_run)
-    patch_claude_md(target, claude_md_block(args.wiki_root, args.scripts_dir,
+    patch_claude_md(target, claude_md_block(wiki_root, scripts_dir,
                                             categories, py_hint), args.dry_run)
 
     if args.dry_run:
         say(f"\nDry run complete. {len(actions)} actions would run.")
         return 0
 
-    ok = deps_ok and run_selftest(target, py, args.scripts_dir, args.network)
+    ok = deps_ok and run_selftest(target, py, scripts_dir, args.network)
 
     step("Result")
     if ok:

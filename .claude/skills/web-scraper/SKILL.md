@@ -12,6 +12,11 @@ source into a wiki page is `/wiki-ingest`.
 Read `wiki-kit.json` first for the `python` path and `scripts_dir`. Below,
 `PY` means that interpreter and `S` means the scripts directory.
 
+If `python` is `null`, neither script can run - this project was installed
+without Python. Stop here and follow "When `python` is `null`" in
+`.claude/skills/wiki/SKILL.md`. Nothing on this page works until that is
+resolved.
+
 ---
 
 ## One page

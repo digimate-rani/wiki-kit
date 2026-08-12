@@ -25,6 +25,32 @@ system Python usually does not have the dependencies installed.
 
 Below, `wiki/` means the `wiki_root` value. If the project renamed it, substitute.
 
+### When `python` is `null`
+
+The kit was installed without Python, deliberately. Pages, queries, notes,
+linting and deleting all work. The two capture scripts cannot run - do not
+attempt them with a bare `python`, which turns a known limitation into a
+confusing traceback.
+
+**That null records what was true at install time, not what is true now.** The
+user may have installed Python since, for this or for anything else. Check
+before you tell them something is unavailable:
+
+```bash
+py -3 --version        # Windows
+python3 --version      # macOS / Linux
+```
+
+- **Python is there now** - say so, and offer to switch the scripts on. It is one
+  command and it keeps every existing page: `python wiki-kit/install.py --yes`.
+  Then continue with whatever they actually asked for.
+- **Still missing** - do not stop at "I can't". Say what you can do instead (see
+  the fallback in `/wiki-ingest`), and offer `/wiki-setup`, which walks through
+  installing Python step by step.
+
+Once the install is finished, `python` in `wiki-kit.json` holds a real path and
+none of this applies.
+
 ## Intent routing
 
 | The user is asking to | Load this workflow |

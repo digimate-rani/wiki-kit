@@ -14,9 +14,12 @@ python3 --version      # macOS / Linux
 ```
 
 If that prints 3.9 or newer, carry on with section A.
-If it does not, go to **section D** of the same skill file - it has the install
-command for each operating system and the traps that come with them - then come
-back here.
+
+If it does not, go to **section D** of the same skill file. Python is only
+needed for capturing web pages and PDFs - the wiki itself works without it - so
+section D is a choice to put to the user, not a blocker: install the wiki now
+and add Python later, or install Python first. Do not decide it for them, and
+do not install anything on their machine without a yes.
 
 Ask the user which wiki categories they want **before** running the installer.
 Then run it once, and report the self-test result exactly as it came back.
